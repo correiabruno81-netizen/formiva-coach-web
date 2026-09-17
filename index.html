@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Formiva — Portail coach</title>
+<style>
+  :root {
+    --bg: #F5F6F8;
+    --surface: #FFFFFF;
+    --surface-2: #EEF1F5;
+    --text: #121417;
+    --text-2: #5B6470;
+    --border: #DDE2E8;
+    --brand: #0066FF;
+    --on-brand: #FFFFFF;
+    --danger: #DC2626;
+    --success: #059669;
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0F1115;
+      --surface: #171A20;
+      --surface-2: #1F232B;
+      --text: #FFFFFF;
+      --text-2: #9AA3AF;
+      --border: #2A2F38;
+      --brand: #00D4FF;
+      --on-brand: #04121A;
+      --danger: #F87171;
+      --success: #34D399;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0F1115;
+    --surface: #171A20;
+    --surface-2: #1F232B;
+    --text: #FFFFFF;
+    --text-2: #9AA3AF;
+    --border: #2A2F38;
+    --brand: #00D4FF;
+    --on-brand: #04121A;
+    --danger: #F87171;
+    --success: #34D399;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.4;
+    padding-bottom: 60px;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 24px 18px 40px; }
+  header.top { text-align: center; margin-bottom: 20px; }
+  header.top .logo { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+  header.top .logo span { color: var(--brand); }
+  header.top p { color: var(--text-2); font-size: 14px; margin: 6px 0 0; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  .card h2 { font-size: 16px; margin: 0 0 12px; }
+  .card h2 .n { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background:var(--brand); color:var(--on-brand); font-size:12px; font-weight:700; margin-right:8px; vertical-align:middle; }
+  label { display: block; font-size: 12px; color: var(--text-2); margin: 10px 0 4px; }
+  input[type="text"], input[type="number"], textarea, select {
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 15px;
+    color: var(--text);
+    font-family: inherit;
+  }
+  textarea { min-height: 80px; resize: vertical; }
+  .row { display: flex; gap: 10px; }
+  .row > * { flex: 1; min-width: 0; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+  .exercise {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    margin-top: 10px;
+    position: relative;
+  }
+  .exercise .rm, .day .rm {
+    position: absolute; top: 8px; right: 8px;
+    background: none; border: none; color: var(--danger);
+    font-size: 18px; cursor: pointer; line-height: 1; padding: 4px;
+  }
+  .day {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 14px;
+    position: relative;
+    background: var(--surface);
+  }
+  .day-name { font-weight: 700; margin-bottom: 4px; }
+  button.add {
+    background: none;
+    border: 1.5px dashed var(--brand);
+    color: var(--brand);
+    border-radius: 10px;
+    padding: 10px;
+    width: 100%;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  button.primary {
+    background: var(--brand);
+    color: var(--on-brand);
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    width: 100%;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 6px;
+  }
+  button.secondary {
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    width: 100%;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  .hint { font-size: 12px; color: var(--text-2); margin-top: 6px; }
+  .result {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--success);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-top: 16px;
+  }
+  .result.show { display: block; }
+  .result textarea.link {
+    min-height: 70px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    word-break: break-all;
+  }
+  .badge-ok { color: var(--success); font-weight: 700; font-size: 14px; }
+  .macros { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+  .macros label { margin: 0 0 4px; }
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--text); color: var(--bg);
+    padding: 10px 18px; border-radius: 20px; font-size: 13px;
+    opacity: 0; transition: opacity 0.25s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+  .privacy {
+    font-size: 12px; color: var(--text-2); text-align: center; margin-top: 24px;
+    padding: 0 10px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo">Form<span>iva</span></div>
+    <p id="introText">Remplissez le programme sportif et nutritionnel, puis renvoyez le lien généré à votre athlète.</p>
+  </header>
+
+  <div class="card">
+    <h2><span class="n">1</span><span id="lblAthlete">Athlète</span></h2>
+    <label id="lblAthleteName">Nom de l'athlète</label>
+    <input type="text" id="athleteName" placeholder="Ex. Bruno" />
+    <label id="lblProgramName">Nom du programme</label>
+    <input type="text" id="programName" placeholder="Ex. Programme Été" />
+  </div>
+
+  <div class="card">
+    <h2><span class="n">2</span><span id="lblNutrition">Plan nutrition</span></h2>
+    <label id="lblNutritionText">Consignes générales</label>
+    <textarea id="nutritionText" placeholder="Ex. 4 repas/jour, 2L d'eau, privilégier les protéines maigres…"></textarea>
+    <div class="macros">
+      <div><label id="lblKcal">Kcal/j</label><input type="number" id="kcal" min="0" /></div>
+      <div><label id="lblProtein">Prot. (g)</label><input type="number" id="protein" min="0" /></div>
+      <div><label id="lblCarbs">Gluc. (g)</label><input type="number" id="carbs" min="0" /></div>
+      <div><label id="lblFat">Lip. (g)</label><input type="number" id="fat" min="0" /></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">3</span><span id="lblProgram">Programme d'entraînement</span></h2>
+    <div id="daysList"></div>
+    <button class="add" id="addDayBtn" type="button">+ <span id="lblAddDay">Ajouter un jour</span></button>
+  </div>
+
+  <button class="primary" id="generateBtn" type="button" id="lblGenerate">Générer le lien pour l'athlète</button>
+  <p class="hint" id="lblHint">Rien n'est envoyé sur un serveur : tout est encodé directement dans le lien généré.</p>
+
+  <div class="result" id="resultCard">
+    <p class="badge-ok" id="lblDone">✓ Lien prêt</p>
+    <textarea class="link" id="resultLink" readonly></textarea>
+    <button class="secondary" id="copyBtn" type="button"><span id="lblCopy">Copier le lien</span></button>
+    <button class="secondary" id="smsBtn" type="button"><span id="lblSms">Envoyer par SMS</span></button>
+    <button class="secondary" id="emailBtn" type="button"><span id="lblEmail">Envoyer par email</span></button>
+    <button class="secondary" id="waBtn" type="button"><span id="lblWa">Envoyer par WhatsApp</span></button>
+    <button class="secondary" id="shareBtn" type="button" style="display:none;"><span id="lblShare">Autre app…</span></button>
+    <p class="hint" id="lblSendBack">Renvoyez ce lien à votre athlète par SMS, WhatsApp ou email — il s'ouvrira directement dans son application Formiva.</p>
+  </div>
+
+  <p class="privacy" id="lblPrivacy">Cette page fonctionne entièrement dans votre navigateur. Aucune donnée n'est stockée ni envoyée à un serveur Formiva.</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var B64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+  function utf8Encode(str) {
+    var bytes = [];
+    for (var i = 0; i < str.length; i++) {
+      var code = str.codePointAt(i);
+      if (code > 0xffff) i++;
+      if (code < 0x80) { bytes.push(code); }
+      else if (code < 0x800) { bytes.push(0xc0 | (code >> 6), 0x80 | (code & 0x3f)); }
+      else if (code < 0x10000) { bytes.push(0xe0 | (code >> 12), 0x80 | ((code >> 6) & 0x3f), 0x80 | (code & 0x3f)); }
+      else { bytes.push(0xf0 | (code >> 18), 0x80 | ((code >> 12) & 0x3f), 0x80 | ((code >> 6) & 0x3f), 0x80 | (code & 0x3f)); }
+    }
+    return bytes;
+  }
+
+  function base64UrlEncode(input) {
+    var bytes = utf8Encode(input);
+    var output = "";
+    for (var i = 0; i < bytes.length; i += 3) {
+      var b1 = bytes[i], b2 = bytes[i + 1], b3 = bytes[i + 2];
+      var triplet = (b1 << 16) | ((b2 === undefined ? 0 : b2) << 8) | (b3 === undefined ? 0 : b3);
+      output += B64_CHARS[(triplet >> 18) & 0x3f];
+      output += B64_CHARS[(triplet >> 12) & 0x3f];
+      output += b2 !== undefined ? B64_CHARS[(triplet >> 6) & 0x3f] : "";
+      output += b3 !== undefined ? B64_CHARS[triplet & 0x3f] : "";
+    }
+    return output.replace(/\+/g, "-").replace(/\//g, "_");
+  }
+
+  var STR = {
+    fr: {
+      intro: "Remplissez le programme sportif et nutritionnel, puis renvoyez le lien généré à votre athlète.",
+      athlete: "Athlète", athleteName: "Nom de l'athlète", programName: "Nom du programme",
+      nutrition: "Plan nutrition", nutritionText: "Consignes générales",
+      kcal: "Kcal/j", protein: "Prot. (g)", carbs: "Gluc. (g)", fat: "Lip. (g)",
+      program: "Programme d'entraînement", addDay: "Ajouter un jour",
+      dayName: "Nom du jour (ex. Push, Jambes…)", addExercise: "+ Ajouter un exercice",
+      exName: "Exercice", sets: "Séries", reps: "Reps", weight: "Poids (kg)", rest: "Repos (s)",
+      generate: "Générer le lien pour l'athlète",
+      hint: "Rien n'est envoyé sur un serveur : tout est encodé directement dans le lien généré.",
+      done: "✓ Lien prêt", copy: "Copier le lien", share: "Autre app…",
+      sms: "Envoyer par SMS", email: "Envoyer par email", wa: "Envoyer par WhatsApp",
+      sendBack: "Renvoyez ce lien à votre athlète par SMS, WhatsApp ou email — il s'ouvrira directement dans son application Formiva.",
+      privacy: "Cette page fonctionne entièrement dans votre navigateur. Aucune donnée n'est stockée ni envoyée à un serveur Formiva.",
+      copied: "Lien copié !", needOneExercise: "Ajoutez au moins un exercice, ou un plan nutrition.",
+      day: "Jour", removeDay: "Supprimer ce jour", removeExercise: "Supprimer cet exercice",
+      shareError: "Impossible d'ouvrir le partage sur cet appareil. Utilisez un des boutons ci-dessus.",
+      shareTextNamed: "{name} aimerait que vous remplissiez son programme Formiva (sport + nutrition). Ouvrez ce lien : {link}",
+      shareTextPlain: "Merci de remplir mon programme Formiva (sport + nutrition) via ce lien : {link}",
+      emailSubject: "Votre programme Formiva",
+    },
+    en: {
+      intro: "Fill in the training and nutrition program, then send the generated link back to your athlete.",
+      athlete: "Athlete", athleteName: "Athlete's name", programName: "Program name",
+      nutrition: "Nutrition plan", nutritionText: "General guidelines",
+      kcal: "Kcal/day", protein: "Protein (g)", carbs: "Carbs (g)", fat: "Fat (g)",
+      program: "Training program", addDay: "Add a day",
+      dayName: "Day name (e.g. Push, Legs…)", addExercise: "+ Add an exercise",
+      exName: "Exercise", sets: "Sets", reps: "Reps", weight: "Weight (kg)", rest: "Rest (s)",
+      generate: "Generate the link for the athlete",
+      hint: "Nothing is sent to a server: everything is encoded directly in the generated link.",
+      done: "✓ Link ready", copy: "Copy link", share: "Other app…",
+      sms: "Send by SMS", email: "Send by email", wa: "Send by WhatsApp",
+      sendBack: "Send this link back to your athlete by SMS, WhatsApp or email — it will open directly in their Formiva app.",
+      privacy: "This page runs entirely in your browser. No data is stored or sent to any Formiva server.",
+      copied: "Link copied!", needOneExercise: "Add at least one exercise, or a nutrition plan.",
+      day: "Day", removeDay: "Remove this day", removeExercise: "Remove this exercise",
+      shareError: "Couldn't open sharing on this device. Use one of the buttons above.",
+      shareTextNamed: "{name} would like you to fill in their Formiva program (training + nutrition). Open this link: {link}",
+      shareTextPlain: "Please fill in my Formiva program (training + nutrition) using this link: {link}",
+      emailSubject: "Your Formiva program",
+    },
+    pt: {
+      intro: "Preencha o programa de treino e nutrição, depois envie o link gerado ao seu atleta.",
+      athlete: "Atleta", athleteName: "Nome do atleta", programName: "Nome do programa",
+      nutrition: "Plano nutricional", nutritionText: "Diretrizes gerais",
+      kcal: "Kcal/dia", protein: "Prot. (g)", carbs: "Gluc. (g)", fat: "Gord. (g)",
+      program: "Programa de treino", addDay: "Adicionar um dia",
+      dayName: "Nome do dia (ex. Push, Pernas…)", addExercise: "+ Adicionar exercício",
+      exName: "Exercício", sets: "Séries", reps: "Reps", weight: "Peso (kg)", rest: "Descanso (s)",
+      generate: "Gerar o link para o atleta",
+      hint: "Nada é enviado a um servidor: tudo é codificado diretamente no link gerado.",
+      done: "✓ Link pronto", copy: "Copiar link", share: "Outra app…",
+      sms: "Enviar por SMS", email: "Enviar por email", wa: "Enviar por WhatsApp",
+      sendBack: "Envie este link de volta ao seu atleta por SMS, WhatsApp ou email — abrirá diretamente na app Formiva dele.",
+      privacy: "Esta página funciona inteiramente no seu navegador. Nenhum dado é guardado ou enviado a um servidor Formiva.",
+      copied: "Link copiado!", needOneExercise: "Adicione pelo menos um exercício, ou um plano nutricional.",
+      day: "Dia", removeDay: "Remover este dia", removeExercise: "Remover este exercício",
+      shareError: "Não foi possível abrir a partilha neste dispositivo. Usa um dos botões acima.",
+      shareTextNamed: "{name} gostaria que preenchesses o seu programa Formiva (treino + nutrição). Abre este link: {link}",
+      shareTextPlain: "Por favor preenche o meu programa Formiva (treino + nutrição) através deste link: {link}",
+      emailSubject: "O teu programa Formiva",
+    },
+    es: {
+      intro: "Rellena el programa de entrenamiento y nutrición, luego envía el enlace generado a tu atleta.",
+      athlete: "Atleta", athleteName: "Nombre del atleta", programName: "Nombre del programa",
+      nutrition: "Plan de nutrición", nutritionText: "Pautas generales",
+      kcal: "Kcal/día", protein: "Prot. (g)", carbs: "Carb. (g)", fat: "Gras. (g)",
+      program: "Programa de entrenamiento", addDay: "Añadir un día",
+      dayName: "Nombre del día (ej. Push, Piernas…)", addExercise: "+ Añadir ejercicio",
+      exName: "Ejercicio", sets: "Series", reps: "Reps", weight: "Peso (kg)", rest: "Descanso (s)",
+      generate: "Generar el enlace para el atleta",
+      hint: "Nada se envía a un servidor: todo se codifica directamente en el enlace generado.",
+      done: "✓ Enlace listo", copy: "Copiar enlace", share: "Otra app…",
+      sms: "Enviar por SMS", email: "Enviar por email", wa: "Enviar por WhatsApp",
+      sendBack: "Envía este enlace a tu atleta por SMS, WhatsApp o email — se abrirá directamente en su app Formiva.",
+      privacy: "Esta página funciona íntegramente en tu navegador. Ningún dato se guarda ni se envía a un servidor Formiva.",
+      copied: "¡Enlace copiado!", needOneExercise: "Añade al menos un ejercicio, o un plan de nutrición.",
+      day: "Día", removeDay: "Eliminar este día", removeExercise: "Eliminar este ejercicio",
+      shareError: "No se pudo abrir el panel para compartir en este dispositivo. Usa uno de los botones de arriba.",
+      shareTextNamed: "{name} le gustaría que rellenaras su programa Formiva (entrenamiento + nutrición). Abre este enlace: {link}",
+      shareTextPlain: "Por favor rellena mi programa Formiva (entrenamiento + nutrición) con este enlace: {link}",
+      emailSubject: "Tu programa Formiva",
+    },
+    it: {
+      intro: "Compila il programma di allenamento e alimentazione, poi invia il link generato al tuo atleta.",
+      athlete: "Atleta", athleteName: "Nome dell'atleta", programName: "Nome del programma",
+      nutrition: "Piano alimentare", nutritionText: "Linee guida generali",
+      kcal: "Kcal/giorno", protein: "Prot. (g)", carbs: "Carb. (g)", fat: "Grassi (g)",
+      program: "Programma di allenamento", addDay: "Aggiungi un giorno",
+      dayName: "Nome del giorno (es. Push, Gambe…)", addExercise: "+ Aggiungi esercizio",
+      exName: "Esercizio", sets: "Serie", reps: "Reps", weight: "Peso (kg)", rest: "Recupero (s)",
+      generate: "Genera il link per l'atleta",
+      hint: "Nulla viene inviato a un server: tutto è codificato direttamente nel link generato.",
+      done: "✓ Link pronto", copy: "Copia link", share: "Altra app…",
+      sms: "Invia via SMS", email: "Invia via email", wa: "Invia via WhatsApp",
+      sendBack: "Invia questo link al tuo atleta via SMS, WhatsApp o email — si aprirà direttamente nella sua app Formiva.",
+      privacy: "Questa pagina funziona interamente nel tuo browser. Nessun dato viene salvato o inviato a un server Formiva.",
+      copied: "Link copiato!", needOneExercise: "Aggiungi almeno un esercizio, o un piano alimentare.",
+      day: "Giorno", removeDay: "Rimuovi questo giorno", removeExercise: "Rimuovi questo esercizio",
+      shareError: "Impossibile aprire la condivisione su questo dispositivo. Usa uno dei pulsanti qui sopra.",
+      shareTextNamed: "{name} vorrebbe che compilassi il suo programma Formiva (allenamento + alimentazione). Apri questo link: {link}",
+      shareTextPlain: "Compila il mio programma Formiva (allenamento + alimentazione) con questo link: {link}",
+      emailSubject: "Il tuo programma Formiva",
+    },
+  };
+
+  var qs = new URLSearchParams(window.location.search);
+  var lang = qs.get("lang");
+  if (!STR[lang]) lang = "fr";
+  var scheme = qs.get("scheme") || "formiva";
+  var L = STR[lang];
+  document.documentElement.lang = lang;
+
+  var IMPORT_OPENER_URL = new URL("open.html", window.location.href).toString();
+
+  function applyStrings() {
+    document.getElementById("introText").textContent = L.intro;
+    document.getElementById("lblAthlete").textContent = L.athlete;
+    document.getElementById("lblAthleteName").textContent = L.athleteName;
+    document.getElementById("lblProgramName").textContent = L.programName;
+    document.getElementById("lblNutrition").textContent = L.nutrition;
+    document.getElementById("lblNutritionText").textContent = L.nutritionText;
+    document.getElementById("lblKcal").textContent = L.kcal;
+    document.getElementById("lblProtein").textContent = L.protein;
+    document.getElementById("lblCarbs").textContent = L.carbs;
+    document.getElementById("lblFat").textContent = L.fat;
+    document.getElementById("lblProgram").textContent = L.program;
+    document.getElementById("lblAddDay").textContent = L.addDay;
+    document.getElementById("generateBtn").textContent = L.generate;
+    document.getElementById("lblHint").textContent = L.hint;
+    document.getElementById("lblDone").textContent = L.done;
+    document.getElementById("lblCopy").textContent = L.copy;
+    document.getElementById("lblSms").textContent = L.sms;
+    document.getElementById("lblEmail").textContent = L.email;
+    document.getElementById("lblWa").textContent = L.wa;
+    document.getElementById("lblShare").textContent = L.share;
+    document.getElementById("lblSendBack").textContent = L.sendBack;
+    document.getElementById("lblPrivacy").textContent = L.privacy;
+  }
+  applyStrings();
+
+  var athleteFromUrl = qs.get("athlete") || "";
+  document.getElementById("athleteName").value = athleteFromUrl;
+
+  var dayCount = 0;
+
+  function addDay(prefillName) {
+    dayCount++;
+    var id = "day" + dayCount;
+    var el = document.createElement("div");
+    el.className = "day";
+    el.dataset.dayId = id;
+    el.innerHTML =
+      '<button type="button" class="rm" data-remove-day title="' + L.removeDay + '">✕</button>' +
+      '<div class="day-name">' + L.day + ' ' + dayCount + '</div>' +
+      '<input type="text" class="dayNameInput" placeholder="' + L.dayName + '" value="' + (prefillName || "") + '" />' +
+      '<div class="exList"></div>' +
+      '<button class="add" type="button" data-add-ex>' + L.addExercise + '</button>';
+    document.getElementById("daysList").appendChild(el);
+    el.querySelector("[data-remove-day]").addEventListener("click", function () {
+      el.remove();
+    });
+    el.querySelector("[data-add-ex]").addEventListener("click", function () {
+      addExercise(el.querySelector(".exList"));
+    });
+    addExercise(el.querySelector(".exList"));
+  }
+
+  function addExercise(container) {
+    var el = document.createElement("div");
+    el.className = "exercise";
+    el.innerHTML =
+      '<button type="button" class="rm" data-remove-ex title="' + L.removeExercise + '">✕</button>' +
+      '<input type="text" class="exName" placeholder="' + L.exName + '" />' +
+      '<div class="row3" style="margin-top:8px;">' +
+      '<div><label style="margin-top:0;">' + L.sets + '</label><input type="number" class="exSets" value="3" min="1" /></div>' +
+      '<div><label style="margin-top:0;">' + L.reps + '</label><input type="text" class="exReps" value="10" /></div>' +
+      '<div><label style="margin-top:0;">' + L.weight + '</label><input type="number" class="exWeight" min="0" step="0.5" /></div>' +
+      '<div><label style="margin-top:0;">' + L.rest + '</label><input type="number" class="exRest" value="60" min="0" /></div>' +
+      '</div>';
+    container.appendChild(el);
+    el.querySelector("[data-remove-ex]").addEventListener("click", function () {
+      el.remove();
+    });
+  }
+
+  document.getElementById("addDayBtn").addEventListener("click", function () { addDay(); });
+  addDay(L.day + " 1");
+
+  function showToast(msg) {
+    var t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(function () { t.classList.remove("show"); }, 2200);
+  }
+
+  document.getElementById("generateBtn").addEventListener("click", function () {
+    var days = [];
+    document.querySelectorAll("#daysList .day").forEach(function (dayEl) {
+      var dayName = dayEl.querySelector(".dayNameInput").value.trim();
+      var exercises = [];
+      dayEl.querySelectorAll(".exercise").forEach(function (exEl) {
+        var name = exEl.querySelector(".exName").value.trim();
+        if (!name) return;
+        var w = exEl.querySelector(".exWeight").value;
+        exercises.push({
+          n: name,
+          s: parseInt(exEl.querySelector(".exSets").value, 10) || 1,
+          r: exEl.querySelector(".exReps").value.trim() || "10",
+          w: w === "" ? null : parseFloat(w),
+          rs: parseInt(exEl.querySelector(".exRest").value, 10) || 0,
+        });
+      });
+      if (exercises.length > 0) {
+        days.push({ n: dayName || L.day, ex: exercises });
+      }
+    });
+
+    var nutritionText = document.getElementById("nutritionText").value.trim();
+    var kcal = document.getElementById("kcal").value;
+    var protein = document.getElementById("protein").value;
+    var carbs = document.getElementById("carbs").value;
+    var fat = document.getElementById("fat").value;
+    var hasNutrition = !!(nutritionText || kcal || protein || carbs || fat);
+
+    if (days.length === 0 && !hasNutrition) {
+      showToast(L.needOneExercise);
+      return;
+    }
+
+    var payload = {
+      v: 1,
+      athlete: document.getElementById("athleteName").value.trim() || undefined,
+      programName: document.getElementById("programName").value.trim() || undefined,
+      lang: lang,
+      days: days,
+      nutrition: hasNutrition ? {
+        text: nutritionText,
+        kcal: kcal ? parseInt(kcal, 10) : undefined,
+        proteinG: protein ? parseInt(protein, 10) : undefined,
+        carbsG: carbs ? parseInt(carbs, 10) : undefined,
+        fatG: fat ? parseInt(fat, 10) : undefined,
+      } : null,
+    };
+
+    var data = base64UrlEncode(JSON.stringify(payload));
+    var link = IMPORT_OPENER_URL + "?data=" + data + "&scheme=" + encodeURIComponent(scheme);
+
+    var resultLink = document.getElementById("resultLink");
+    resultLink.value = link;
+    document.getElementById("resultCard").classList.add("show");
+    document.getElementById("resultCard").scrollIntoView({ behavior: "smooth", block: "start" });
+
+    if (navigator.share) {
+      document.getElementById("shareBtn").style.display = "block";
+    }
+  });
+
+  document.getElementById("copyBtn").addEventListener("click", function () {
+    var resultLink = document.getElementById("resultLink");
+    resultLink.select();
+    resultLink.setSelectionRange(0, resultLink.value.length);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(resultLink.value).then(function () {
+        showToast(L.copied);
+      }).catch(function () {
+        try { document.execCommand("copy"); showToast(L.copied); } catch (e) { /* noop */ }
+      });
+    } else {
+      try { document.execCommand("copy"); showToast(L.copied); } catch (e) { /* noop */ }
+    }
+  });
+
+  function openExternal(url, target) {
+    var a = document.createElement("a");
+    a.href = url;
+    a.target = target || "_top";
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  document.getElementById("shareBtn").addEventListener("click", function () {
+    var link = document.getElementById("resultLink").value;
+    if (navigator.share) {
+      navigator.share({ text: link }).catch(function () { showToast(L.shareError); });
+    }
+  });
+
+  function shareText() {
+    var link = document.getElementById("resultLink").value;
+    var name = document.getElementById("athleteName").value.trim();
+    return name ? L.shareTextNamed.replace("{name}", name).replace("{link}", link) : L.shareTextPlain.replace("{link}", link);
+  }
+
+  document.getElementById("smsBtn").addEventListener("click", function () {
+    openExternal("sms:&body=" + encodeURIComponent(shareText()));
+  });
+
+  document.getElementById("emailBtn").addEventListener("click", function () {
+    var subject = encodeURIComponent(L.emailSubject);
+    openExternal("mailto:?subject=" + subject + "&body=" + encodeURIComponent(shareText()));
+  });
+
+  document.getElementById("waBtn").addEventListener("click", function () {
+    openExternal("https://wa.me/?text=" + encodeURIComponent(shareText()), "_blank");
+  });
+})();
+</script>
+</body>
+</html>
