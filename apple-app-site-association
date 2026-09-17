@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["7Q2F93R6D9.com.emergent.gymatlaspreview.qf504s"],
+        "components": [
+          {
+            "/": "/p/*",
+            "comment": "Lien coach -> coaché : programme importé dans Formiva après confirmation"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Formiva — Programme reçu</title>
+<script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl-fast.min.js"></script>
+<style>
+  :root{
+    --ink:#1b1f1a;
+    --paper:#f6f4ee;
+    --line:#d9d4c6;
+    --accent:#3d6b4f;
+    --accent-ink:#f6f4ee;
+    --muted:#6b6a60;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#eef0e9;
+      --paper:#14170f;
+      --line:#2c3128;
+      --accent:#7fbb92;
+      --accent-ink:#0d130e;
+      --muted:#9a988c;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#eef0e9;
+    --paper:#14170f;
+    --line:#2c3128;
+    --accent:#7fbb92;
+    --accent-ink:#0d130e;
+    --muted:#9a988c;
+  }
+  *{box-sizing:border-box;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+    padding-inline:20px;
+    margin:0;
+  }
+  main{
+    max-width:440px;
+    margin:0 auto;
+    min-height:80vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:18px;
+    padding-block:48px;
+  }
+  .mark{
+    width:56px;height:56px;border-radius:16px;
+    background:var(--accent);
+    display:flex;align-items:center;justify-content:center;
+    font-size:26px;
+    margin-inline:auto;
+  }
+  h1{
+    font-size:1.25rem;
+    font-weight:650;
+    margin:0;
+    letter-spacing:-0.01em;
+    text-align:center;
+  }
+  p{
+    color:var(--muted);
+    font-size:0.95rem;
+    line-height:1.5;
+    margin:0;
+    text-align:center;
+  }
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    background:var(--accent);
+    color:var(--accent-ink);
+    border:none;
+    border-radius:999px;
+    padding:14px 26px;
+    font-size:1rem;
+    font-weight:600;
+    text-decoration:none;
+    cursor:pointer;
+  }
+  .btn.secondary{
+    background:transparent;
+    color:var(--ink);
+    border:1px solid var(--line);
+  }
+  .card{
+    background:rgba(0,0,0,0.03);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px;
+    text-align:left;
+  }
+  .card h2{ font-size:0.95rem; margin:0 0 8px; }
+  .card ul{ margin:0; padding-left:18px; font-size:0.9rem; color:var(--muted); }
+  .card li{ margin-bottom:4px; }
+  #error{ color:#b3432b; }
+  .hint{
+    font-size:0.8rem;
+    color:var(--muted);
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+
+<main>
+  <div class="mark">🏋️</div>
+
+  <div id="loading">
+    <h1>Ouverture du programme…</h1>
+  </div>
+
+  <div id="error" hidden>
+    <h1>Lien invalide</h1>
+    <p>Ce lien a peut-être déjà été utilisé, ou il a expiré. Demande à ton coach de te le renvoyer.</p>
+  </div>
+
+  <div id="preview" hidden>
+    <h1 id="previewTitle">Programme reçu</h1>
+    <p>Installe Formiva pour importer ce programme directement dans l'app.</p>
+    <div class="card" id="previewCard"></div>
+    <a class="btn" id="appStoreBtn" href="#" target="_blank" rel="noopener">Télécharger Formiva</a>
+    <a class="btn secondary" id="openAppBtn" href="#">J'ai déjà l'app — l'ouvrir</a>
+    <p class="hint">Le programme reste chiffré jusqu'à son ouverture dans Formiva. Cette page ne l'enregistre pas.</p>
+  </div>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  // Doit rester identique à l'alphabet utilisé côté app et côté portail.
+  var B64URL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
+  function base64UrlToBytes(input) {
+    var clean = (input || "").replace(/[^A-Za-z0-9\-_]/g, "");
+    var bytes = [];
+    var buffer = 0, bits = 0;
+    for (var i = 0; i < clean.length; i++) {
+      var v = B64URL.indexOf(clean[i]);
+      if (v === -1) continue;
+      buffer = (buffer << 6) | v;
+      bits += 6;
+      if (bits >= 8) {
+        bits -= 8;
+        bytes.push((buffer >> bits) & 0xff);
+      }
+    }
+    return new Uint8Array(bytes);
+  }
+
+  function show(id) {
+    ["loading", "error", "preview"].forEach(function (key) {
+      document.getElementById(key).hidden = key !== id;
+    });
+  }
+
+  // App Store : lien à mettre à jour une fois la fiche publiée.
+  var APP_STORE_URL = "https://apps.apple.com/app/formiva/idXXXXXXXXX";
+  document.getElementById("appStoreBtn").href = APP_STORE_URL;
+
+  var LINKS_API_URL = new URLSearchParams(window.location.search).get("api") || "https://formiva.app/api";
+
+  var path = window.location.pathname.replace(/\/+$/, "");
+  var code = path.split("/").pop();
+  var key = window.location.hash ? window.location.hash.slice(1) : "";
+
+  var openAppUrl = window.location.href; // même Universal Link : l'app l'interceptera si installée.
+  document.getElementById("openAppBtn").href = openAppUrl;
+
+  if (!code || !key) {
+    show("error");
+    return;
+  }
+
+  fetch(LINKS_API_URL + "/links/" + encodeURIComponent(code))
+    .then(function (res) {
+      if (!res.ok) throw new Error("not found");
+      return res.json();
+    })
+    .then(function (json) {
+      var combined = base64UrlToBytes(json.blob);
+      var keyBytes = base64UrlToBytes(key);
+      var nonce = combined.slice(0, nacl.secretbox.nonceLength);
+      var ciphertext = combined.slice(nacl.secretbox.nonceLength);
+      var plainBytes = nacl.secretbox.open(ciphertext, nonce, keyBytes);
+      if (!plainBytes) throw new Error("decrypt failed");
+
+      var json2 = new TextDecoder().decode(plainBytes);
+      var payload = JSON.parse(json2);
+
+      document.getElementById("previewTitle").textContent =
+        payload.programName || "Programme reçu";
+
+      var card = document.getElementById("previewCard");
+      var days = payload.days || [];
+      var html = "<h2>" + days.length + " jour(s) d'entraînement</h2><ul>";
+      days.forEach(function (day) {
+        html += "<li>" + (day.n || "Jour") + " — " + (day.ex || []).length + " exercice(s)</li>";
+      });
+      html += "</ul>";
+      card.innerHTML = html;
+
+      show("preview");
+    })
+    .catch(function () {
+      show("error");
+    });
+})();
+</script>
+
+</body>
+</html>

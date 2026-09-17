@@ -171,6 +171,7 @@
     padding: 0 10px;
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl-fast.min.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -243,8 +244,9 @@
     return bytes;
   }
 
-  function base64UrlEncode(input) {
-    var bytes = utf8Encode(input);
+  // Encode un tableau d'octets (Uint8Array ou tableau simple) en base64url
+  // (RFC 4648 §5, sans padding) — même alphabet que côté app.
+  function bytesToBase64Url(bytes) {
     var output = "";
     for (var i = 0; i < bytes.length; i += 3) {
       var b1 = bytes[i], b2 = bytes[i + 1], b3 = bytes[i + 2];
@@ -257,6 +259,20 @@
     return output.replace(/\+/g, "-").replace(/\//g, "_");
   }
 
+  function base64UrlEncode(input) {
+    return bytesToBase64Url(utf8Encode(input));
+  }
+
+  // URL de l'API du service de lien court (blob chiffré stocké
+  // temporairement, jamais la clé). Surchargeable via ?api=... pour les
+  // tests locaux.
+  var LINKS_API_URL = qsGet("api") || "https://formiva.app/api";
+  var LINKS_BASE_URL = qsGet("linkBase") || "https://formiva.app/p";
+
+  function qsGet(name) {
+    return new URLSearchParams(window.location.search).get(name);
+  }
+
   var STR = {
     fr: {
       intro: "Remplissez le programme sportif et nutritionnel, puis renvoyez le lien généré à votre athlète.",
@@ -267,12 +283,12 @@
       dayName: "Nom du jour (ex. Push, Jambes…)", addExercise: "+ Ajouter un exercice",
       exName: "Exercice", sets: "Séries", reps: "Reps", weight: "Poids (kg)", rest: "Repos (s)",
       generate: "Générer le lien pour l'athlète",
-      hint: "Rien n'est envoyé sur un serveur : tout est encodé directement dans le lien généré.",
+      hint: "Le programme est chiffré dans votre navigateur avant l'envoi : le serveur ne conserve qu'un contenu illisible, temporairement, et ne peut pas le lire.",
       done: "✓ Lien prêt", copy: "Copier le lien", share: "Autre app…",
       sms: "Envoyer par SMS", email: "Envoyer par email", wa: "Envoyer par WhatsApp",
       sendBack: "Renvoyez ce lien à votre athlète par SMS, WhatsApp ou email — il s'ouvrira directement dans son application Formiva.",
-      privacy: "Cette page fonctionne entièrement dans votre navigateur. Aucune donnée n'est stockée ni envoyée à un serveur Formiva.",
-      copied: "Lien copié !", needOneExercise: "Ajoutez au moins un exercice, ou un plan nutrition.",
+      privacy: "Le programme est chiffré ici, dans votre navigateur, avant tout envoi. Le serveur Formiva ne stocke que ce contenu chiffré, brièvement, et ne détient jamais la clé pour le lire.",
+      copied: "Lien copié !", needOneExercise: "Ajoutez au moins un exercice, ou un plan nutrition.", linkError: "Impossible de créer le lien pour le moment. Vérifiez votre connexion et réessayez.", generating: "Création du lien…",
       day: "Jour", removeDay: "Supprimer ce jour", removeExercise: "Supprimer cet exercice",
       shareError: "Impossible d'ouvrir le partage sur cet appareil. Utilisez un des boutons ci-dessus.",
       shareTextNamed: "{name} aimerait que vous remplissiez son programme Formiva (sport + nutrition). Ouvrez ce lien : {link}",
@@ -288,12 +304,12 @@
       dayName: "Day name (e.g. Push, Legs…)", addExercise: "+ Add an exercise",
       exName: "Exercise", sets: "Sets", reps: "Reps", weight: "Weight (kg)", rest: "Rest (s)",
       generate: "Generate the link for the athlete",
-      hint: "Nothing is sent to a server: everything is encoded directly in the generated link.",
+      hint: "The program is encrypted in your browser before sending: the server only keeps unreadable content, briefly, and cannot read it.",
       done: "✓ Link ready", copy: "Copy link", share: "Other app…",
       sms: "Send by SMS", email: "Send by email", wa: "Send by WhatsApp",
       sendBack: "Send this link back to your athlete by SMS, WhatsApp or email — it will open directly in their Formiva app.",
-      privacy: "This page runs entirely in your browser. No data is stored or sent to any Formiva server.",
-      copied: "Link copied!", needOneExercise: "Add at least one exercise, or a nutrition plan.",
+      privacy: "The program is encrypted here, in your browser, before anything is sent. The Formiva server only stores this encrypted content, briefly, and never holds the key to read it.",
+      copied: "Link copied!", needOneExercise: "Add at least one exercise, or a nutrition plan.", linkError: "Could not create the link right now. Check your connection and try again.", generating: "Creating link…",
       day: "Day", removeDay: "Remove this day", removeExercise: "Remove this exercise",
       shareError: "Couldn't open sharing on this device. Use one of the buttons above.",
       shareTextNamed: "{name} would like you to fill in their Formiva program (training + nutrition). Open this link: {link}",
@@ -309,12 +325,12 @@
       dayName: "Nome do dia (ex. Push, Pernas…)", addExercise: "+ Adicionar exercício",
       exName: "Exercício", sets: "Séries", reps: "Reps", weight: "Peso (kg)", rest: "Descanso (s)",
       generate: "Gerar o link para o atleta",
-      hint: "Nada é enviado a um servidor: tudo é codificado diretamente no link gerado.",
+      hint: "O programa é encriptado no seu navegador antes do envio: o servidor só guarda conteúdo ilegível, temporariamente, e não consegue lê-lo.",
       done: "✓ Link pronto", copy: "Copiar link", share: "Outra app…",
       sms: "Enviar por SMS", email: "Enviar por email", wa: "Enviar por WhatsApp",
       sendBack: "Envie este link de volta ao seu atleta por SMS, WhatsApp ou email — abrirá diretamente na app Formiva dele.",
-      privacy: "Esta página funciona inteiramente no seu navegador. Nenhum dado é guardado ou enviado a um servidor Formiva.",
-      copied: "Link copiado!", needOneExercise: "Adicione pelo menos um exercício, ou um plano nutricional.",
+      privacy: "O programa é encriptado aqui, no seu navegador, antes de qualquer envio. O servidor Formiva só guarda este conteúdo encriptado, brevemente, e nunca tem a chave para o ler.",
+      copied: "Link copiado!", needOneExercise: "Adicione pelo menos um exercício, ou um plano nutricional.", linkError: "Não foi possível criar o link agora. Verifique a sua ligação e tente novamente.", generating: "A criar o link…",
       day: "Dia", removeDay: "Remover este dia", removeExercise: "Remover este exercício",
       shareError: "Não foi possível abrir a partilha neste dispositivo. Usa um dos botões acima.",
       shareTextNamed: "{name} gostaria que preenchesses o seu programa Formiva (treino + nutrição). Abre este link: {link}",
@@ -330,12 +346,12 @@
       dayName: "Nombre del día (ej. Push, Piernas…)", addExercise: "+ Añadir ejercicio",
       exName: "Ejercicio", sets: "Series", reps: "Reps", weight: "Peso (kg)", rest: "Descanso (s)",
       generate: "Generar el enlace para el atleta",
-      hint: "Nada se envía a un servidor: todo se codifica directamente en el enlace generado.",
+      hint: "El programa se cifra en tu navegador antes del envío: el servidor solo guarda contenido ilegible, temporalmente, y no puede leerlo.",
       done: "✓ Enlace listo", copy: "Copiar enlace", share: "Otra app…",
       sms: "Enviar por SMS", email: "Enviar por email", wa: "Enviar por WhatsApp",
       sendBack: "Envía este enlace a tu atleta por SMS, WhatsApp o email — se abrirá directamente en su app Formiva.",
-      privacy: "Esta página funciona íntegramente en tu navegador. Ningún dato se guarda ni se envía a un servidor Formiva.",
-      copied: "¡Enlace copiado!", needOneExercise: "Añade al menos un ejercicio, o un plan de nutrición.",
+      privacy: "El programa se cifra aquí, en tu navegador, antes de cualquier envío. El servidor Formiva solo guarda este contenido cifrado, brevemente, y nunca tiene la clave para leerlo.",
+      copied: "¡Enlace copiado!", needOneExercise: "Añade al menos un ejercicio, o un plan de nutrición.", linkError: "No se pudo crear el enlace ahora. Comprueba tu conexión e inténtalo de nuevo.", generating: "Creando enlace…",
       day: "Día", removeDay: "Eliminar este día", removeExercise: "Eliminar este ejercicio",
       shareError: "No se pudo abrir el panel para compartir en este dispositivo. Usa uno de los botones de arriba.",
       shareTextNamed: "{name} le gustaría que rellenaras su programa Formiva (entrenamiento + nutrición). Abre este enlace: {link}",
@@ -351,12 +367,12 @@
       dayName: "Nome del giorno (es. Push, Gambe…)", addExercise: "+ Aggiungi esercizio",
       exName: "Esercizio", sets: "Serie", reps: "Reps", weight: "Peso (kg)", rest: "Recupero (s)",
       generate: "Genera il link per l'atleta",
-      hint: "Nulla viene inviato a un server: tutto è codificato direttamente nel link generato.",
+      hint: "Il programma viene cifrato nel tuo browser prima dell'invio: il server conserva solo contenuto illeggibile, temporaneamente, e non può leggerlo.",
       done: "✓ Link pronto", copy: "Copia link", share: "Altra app…",
       sms: "Invia via SMS", email: "Invia via email", wa: "Invia via WhatsApp",
       sendBack: "Invia questo link al tuo atleta via SMS, WhatsApp o email — si aprirà direttamente nella sua app Formiva.",
-      privacy: "Questa pagina funziona interamente nel tuo browser. Nessun dato viene salvato o inviato a un server Formiva.",
-      copied: "Link copiato!", needOneExercise: "Aggiungi almeno un esercizio, o un piano alimentare.",
+      privacy: "Il programma viene cifrato qui, nel tuo browser, prima di ogni invio. Il server Formiva conserva solo questo contenuto cifrato, brevemente, e non ha mai la chiave per leggerlo.",
+      copied: "Link copiato!", needOneExercise: "Aggiungi almeno un esercizio, o un piano alimentare.", linkError: "Impossibile creare il link ora. Controlla la connessione e riprova.", generating: "Creazione del link…",
       day: "Giorno", removeDay: "Rimuovi questo giorno", removeExercise: "Rimuovi questo esercizio",
       shareError: "Impossibile aprire la condivisione su questo dispositivo. Usa uno dei pulsanti qui sopra.",
       shareTextNamed: "{name} vorrebbe che compilassi il suo programma Formiva (allenamento + alimentazione). Apri questo link: {link}",
@@ -368,11 +384,9 @@
   var qs = new URLSearchParams(window.location.search);
   var lang = qs.get("lang");
   if (!STR[lang]) lang = "fr";
-  var scheme = qs.get("scheme") || "formiva";
   var L = STR[lang];
   document.documentElement.lang = lang;
 
-  var IMPORT_OPENER_URL = new URL("open.html", window.location.href).toString();
 
   function applyStrings() {
     document.getElementById("introText").textContent = L.intro;
@@ -455,6 +469,36 @@
     setTimeout(function () { t.classList.remove("show"); }, 2200);
   }
 
+  // Chiffre le programme (nacl.secretbox, clé + nonce aléatoires générés
+  // dans le navigateur) et le fait stocker temporairement, sous forme
+  // chiffrée, par le service de lien court. La clé ne quitte jamais cette
+  // fonction autrement que dans le fragment (#...) du lien final : elle
+  // n'est jamais envoyée au serveur.
+  function encryptAndUploadPayload(payload) {
+    var messageBytes = new Uint8Array(utf8Encode(JSON.stringify(payload)));
+    var key = nacl.randomBytes(nacl.secretbox.keyLength);
+    var nonce = nacl.randomBytes(nacl.secretbox.nonceLength);
+    var ciphertext = nacl.secretbox(messageBytes, nonce, key);
+
+    var combined = new Uint8Array(nonce.length + ciphertext.length);
+    combined.set(nonce, 0);
+    combined.set(ciphertext, nonce.length);
+
+    var blobB64 = bytesToBase64Url(combined);
+    var keyB64 = bytesToBase64Url(key);
+
+    return fetch(LINKS_API_URL + "/links", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ blob: blobB64 }),
+    }).then(function (res) {
+      if (!res.ok) throw new Error("upload failed");
+      return res.json();
+    }).then(function (json) {
+      return LINKS_BASE_URL + "/" + json.code + "#" + keyB64;
+    });
+  }
+
   document.getElementById("generateBtn").addEventListener("click", function () {
     var days = [];
     document.querySelectorAll("#daysList .day").forEach(function (dayEl) {
@@ -504,17 +548,26 @@
       } : null,
     };
 
-    var data = base64UrlEncode(JSON.stringify(payload));
-    var link = IMPORT_OPENER_URL + "?data=" + data + "&scheme=" + encodeURIComponent(scheme);
+    var generateBtn = document.getElementById("generateBtn");
+    var originalLabel = generateBtn.textContent;
+    generateBtn.disabled = true;
+    generateBtn.textContent = L.generating;
 
-    var resultLink = document.getElementById("resultLink");
-    resultLink.value = link;
-    document.getElementById("resultCard").classList.add("show");
-    document.getElementById("resultCard").scrollIntoView({ behavior: "smooth", block: "start" });
+    encryptAndUploadPayload(payload).then(function (link) {
+      var resultLink = document.getElementById("resultLink");
+      resultLink.value = link;
+      document.getElementById("resultCard").classList.add("show");
+      document.getElementById("resultCard").scrollIntoView({ behavior: "smooth", block: "start" });
 
-    if (navigator.share) {
-      document.getElementById("shareBtn").style.display = "block";
-    }
+      if (navigator.share) {
+        document.getElementById("shareBtn").style.display = "block";
+      }
+    }).catch(function () {
+      showToast(L.linkError);
+    }).finally(function () {
+      generateBtn.disabled = false;
+      generateBtn.textContent = originalLabel;
+    });
   });
 
   document.getElementById("copyBtn").addEventListener("click", function () {

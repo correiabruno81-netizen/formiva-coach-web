@@ -1,148 +1,19 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-<title>Formiva Import</title>
-<style>
-  :root{
-    --ink:#1b1f1a;
-    --paper:#f6f4ee;
-    --line:#d9d4c6;
-    --accent:#3d6b4f;
-    --accent-ink:#f6f4ee;
-    --muted:#6b6a60;
-  }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --ink:#eef0e9;
-      --paper:#14170f;
-      --line:#2c3128;
-      --accent:#7fbb92;
-      --accent-ink:#0d130e;
-      --muted:#9a988c;
-    }
-  }
-  :root[data-theme="dark"]{
-    --ink:#eef0e9;
-    --paper:#14170f;
-    --line:#2c3128;
-    --accent:#7fbb92;
-    --accent-ink:#0d130e;
-    --muted:#9a988c;
-  }
-
-  body{
-    background:var(--paper);
-    color:var(--ink);
-    font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
-    padding-inline:20px;
-    margin:0;
-  }
-  main{
-    max-width:420px;
-    margin:0 auto;
-    min-height:80vh;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    gap:18px;
-    padding-block:48px;
-  }
-  .mark{
-    width:56px;height:56px;border-radius:16px;
-    background:var(--accent);
-    display:flex;align-items:center;justify-content:center;
-    font-size:26px;
-  }
-  h1{
-    font-size:1.3rem;
-    font-weight:650;
-    margin:0;
-    letter-spacing:-0.01em;
-  }
-  p{
-    color:var(--muted);
-    font-size:0.95rem;
-    line-height:1.5;
-    margin:0;
-    max-width:34ch;
-  }
-  .btn{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    background:var(--accent);
-    color:var(--accent-ink);
-    border:none;
-    border-radius:999px;
-    padding:14px 26px;
-    font-size:1rem;
-    font-weight:600;
-    text-decoration:none;
-    margin-top:8px;
-    cursor:pointer;
-  }
-  .btn:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
-  .hint{
-    font-size:0.8rem;
-    color:var(--muted);
-    border-top:1px solid var(--line);
-    padding-top:14px;
-    margin-top:6px;
-  }
-  #error{
-    color:#b3432b;
-  }
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Formiva</title>
 </head>
 <body>
-
-<main>
-  <div class="mark">🏋️</div>
-  <div id="waiting">
-    <h1>Ouverture de Formiva…</h1>
-    <p>Le programme envoyé par ton coach est prêt à être importé.</p>
-    <a class="btn" id="open-link" href="#">Ouvrir dans Formiva</a>
-    <p class="hint">Si rien ne se passe, appuie sur le bouton ci-dessus.</p>
-  </div>
-  <div id="error" hidden>
-    <h1>Lien invalide</h1>
-    <p>Ce lien ne contient pas de programme valide. Demande à ton coach de te le renvoyer.</p>
-  </div>
-</main>
-
-<script>
-  (function () {
-    try {
-      var params = new URLSearchParams(window.location.search);
-      var data = params.get("data");
-      var scheme = params.get("scheme") || "formiva";
-
-      if (!data) {
-        document.getElementById("waiting").hidden = true;
-        document.getElementById("error").hidden = false;
-        return;
-      }
-
-      var appUrl = scheme + "://coach-link/import?data=" + encodeURIComponent(data);
-      var link = document.getElementById("open-link");
-      link.setAttribute("href", appUrl);
-      link.addEventListener("click", function (e) {
-        e.preventDefault();
-        window.location.href = appUrl;
-      });
-
-      window.location.href = appUrl;
-    } catch (err) {
-      document.getElementById("waiting").hidden = true;
-      document.getElementById("error").hidden = false;
-    }
-  })();
-</script>
-
+<!--
+  Ancienne page, remplacée par le nouveau parcours "lien court chiffré" :
+  voir /p/index.html. Conservée uniquement pour ne pas casser d'anciens
+  liens déjà partagés (qui de toute façon ne peuvent plus être lus : le
+  format a changé pour un chiffrement côté client). Peut être supprimée
+  du déploiement une fois confirmé qu'aucun ancien lien n'est plus en
+  circulation.
+-->
+<p>Ce lien n'est plus valide. Demande à ton coach de t'en renvoyer un nouveau.</p>
 </body>
 </html>
