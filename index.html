@@ -244,8 +244,6 @@
     return bytes;
   }
 
-  // Encode un tableau d'octets (Uint8Array ou tableau simple) en base64url
-  // (RFC 4648 §5, sans padding) — même alphabet que côté app.
   function bytesToBase64Url(bytes) {
     var output = "";
     for (var i = 0; i < bytes.length; i += 3) {
@@ -263,15 +261,12 @@
     return bytesToBase64Url(utf8Encode(input));
   }
 
-  // URL de l'API du service de lien court (blob chiffré stocké
-  // temporairement, jamais la clé). Surchargeable via ?api=... pour les
-  // tests locaux.
-  var LINKS_API_URL = qsGet("api") || "https://formiva.app/api";
-  var LINKS_BASE_URL = qsGet("linkBase") || "https://formiva.app/p";
-
   function qsGet(name) {
     return new URLSearchParams(window.location.search).get(name);
   }
+
+  var LINKS_API_URL = qsGet("api") || "https://formiva-api.correiabruno81.workers.dev";
+  var LINKS_BASE_URL = qsGet("linkBase") || "https://formiva.app/p";
 
   var STR = {
     fr: {
@@ -469,11 +464,6 @@
     setTimeout(function () { t.classList.remove("show"); }, 2200);
   }
 
-  // Chiffre le programme (nacl.secretbox, clé + nonce aléatoires générés
-  // dans le navigateur) et le fait stocker temporairement, sous forme
-  // chiffrée, par le service de lien court. La clé ne quitte jamais cette
-  // fonction autrement que dans le fragment (#...) du lien final : elle
-  // n'est jamais envoyée au serveur.
   function encryptAndUploadPayload(payload) {
     var messageBytes = new Uint8Array(utf8Encode(JSON.stringify(payload)));
     var key = nacl.randomBytes(nacl.secretbox.keyLength);
